@@ -14,7 +14,7 @@ all_tiers = {}
 
 
 def get_patrons():
-    access_url = f"https://www.patreon.com/api/oauth2/v2/campaigns/{CampaignID}/members?include=currently_entitled_tiers&fields[member]=full_name&fields[tier]=title"
+    access_url = f"https://www.patreon.com/api/oauth2/v2/campaigns/{CampaignID}/members?include=currently_entitled_tiers&fields%5Bmember%5D=full_name&fields%5Btier%5D=title"
     PatreonResponse = requests.get(access_url, headers={"Authorization": f"Bearer {CreatorToken}"})
     return PatreonResponse.json()
 
@@ -22,7 +22,7 @@ def get_patrons():
 def setup_tiers():
     # This URL is used to get only the tiers, but also includes patrons as well.
     # No identifying information is included, except for a unique ID for each member.
-    access_url = f"https://www.patreon.com/api/oauth2/v2/campaigns/{CampaignID}/members?include=currently_entitled_tiers&fields[tier]=title"
+    access_url = f"https://www.patreon.com/api/oauth2/v2/campaigns/{CampaignID}/members?include=currently_entitled_tiers&fields%5Btier%5D=title"
     # Make the request to the API
     PatreonResponse = requests.get(access_url, headers={"Authorization": f"Bearer {CreatorToken}"})
 
