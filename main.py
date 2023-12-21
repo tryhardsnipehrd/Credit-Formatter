@@ -44,10 +44,10 @@ def get_tier_from_id(tier_id):
 def get_patrons_from_csv():
     print("Reading CSV from ", CSVFile)
     with open(CSVFile, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        reader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
         with open(SaveFile, 'w') as f:
             for row in reader:
-                f.write(row[0] + ":" + row[11] + "\n")
+                f.write(row['Name'] + ":" + row['Tier'] + "\n")
     with open(SaveFile, 'r') as fin:
         data = fin.read().splitlines(True)
     with open(SaveFile, 'w') as fout:
