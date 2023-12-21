@@ -14,6 +14,8 @@ SaveFile = config['General']['SaveFile']
 UseCSV = config['Patreon'].getboolean('UseCSV')
 CSVFile = config['Patreon']['CSVFile']
 sortResults = config['General'].getboolean('SortResults')
+UseTierColors = config['PostProcessing'].getboolean('UseTierColors')
+PatreonColors = config['Patreon.Tiers']
 
 
 # Initialize a global dictionary to use for lookup from ID
@@ -43,19 +45,37 @@ def get_tier_from_id(tier_id):
 
 def get_patrons_from_csv():
     print("Reading CSV from ", CSVFile)
+    # First we get the data from the CSV, then transfer it to the save file with no modification
     with open(CSVFile, newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=',', quotechar='|')
         with open(SaveFile, 'w') as f:
             for row in reader:
-                f.write(row['Name'] + ":" + row['Tier'] + "\n")
-    with open(SaveFile, 'r') as fin:
-        data = fin.read().splitlines(True)
-    with open(SaveFile, 'w') as fout:
+                f.write(row['Name'].strip() + ":" + row['Tier'] + "\n")
+    # Now we need to get the data from the save file in order to sort it
+    with open(SaveFile, 'r') as f:
+        data = f.read().splitlines(True)
+    # And write it back, sorted if needed
+    with open(SaveFile, 'w') as f:
         if sorted:
             print("Sorting results...")
-            fout.writelines(sorted(data[1:], key=str.lower))
+            # Sort the data, ignoring case
+            f.writelines(sorted(data, key=str.lower))
         else:
-            fout.writelines(data[1:])
+            f.writelines(data)
+
+def post_process():
+    # Create a new list to hold the data through opening/closing the file
+    newFile = []
+    with open(SaveFile, "r") as f:
+        data = f.readlines()
+        for line in data:
+            if UseTierColors:
+                # This allows us to use the tier colors from the config file, without any limit to how many tiers we can have
+                if line.split(":")[1].strip() in PatreonColors:
+                    newFile.append(f"<font color=\"{PatreonColors[line.split(':')[1].strip()]}\">{line.split(':')[0].strip()}</font>")
+    with open(SaveFile, "w") as f:
+        for line in newFile:
+            f.write(line + "\n")
 
 def get_patron_from_web():
     print("Caching tiers...")
@@ -69,7 +89,6 @@ def get_patron_from_web():
         except IndexError:
             patron['attributes']['full_name'] = "Anonymous"
     print("Done!")
-    # print(all_patrons)
     print("Creating list...")
     with open(SaveFile, 'a') as f:
         # Loop through the patrons, writing the data to the savefile
@@ -83,4 +102,6 @@ if __name__ == '__main__':
         get_patrons_from_csv()
     else:
         get_patron_from_web()
+    print("Beginning Post Processing...")
+    post_process()
     print("Done!")
